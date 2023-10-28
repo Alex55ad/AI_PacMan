@@ -137,7 +137,7 @@ def breadthFirstSearch(problem):
                 print "Solution: ", solution
                 return solution
             successors = problem.getSuccessors(currentx)
-            print "Succsessors: ", successors
+
             for nextState, action, _ in successors:
                 queue.push((nextState, actions + [action])) 
     print "Solution: ", solution
@@ -181,39 +181,32 @@ def nullHeuristic(state, problem=None):
     return 0
 
 def aStarSearch(problem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    start_state = problem.getStartState()
-    start_node = (start_state, [], 0, heuristic(start_state, problem))
+    print "Start:", problem.getStartState()
+    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    print "Start's successors:", problem.getSuccessors(problem.getStartState())
 
+    current = problem.getStartState()
     priority_queue = util.PriorityQueue()
-    visited = set()
+    visited = []
     solution = []
-    priority_queue.push(start_node, start_node[2] + start_node[3])
 
-    while not priority_queue.isEmpty():
-        current_state, actions, cost, _ = priority_queue.pop()
-        solution = actions
-        if isinstance(current_state, int):
-            current = current_state
-            visited_corners = set()  # Initialize visited_corners as an empty set
-        else:
-            current, visited_corners = current_state
-
-        if problem.isGoalState(current_state):
-            return solution
-
+    if problem.isGoalState(current):
+        print "Solution: ", solution
+        return solution
+    
+    while not problem.isGoalState(current):
         if current not in visited:
-            visited.add(current)
+            visited.append(current)
+            successors = problem.getSuccessors(current)
 
-            successors = problem.getSuccessors(current_state)
-            for next_state, action, step_cost in successors:
-                if isinstance(current_state, int):
-                    next_state = (next_state, visited_corners)  # Convert to the (x, y, visited_corners) format
-                new_actions = actions + [action]
-                new_cost = cost + step_cost
-                priority = new_cost + heuristic(next_state, problem)
-                priority_queue.push((next_state, new_actions, new_cost, priority), priority)
+            for nextState, action, step_cost in successors:
+                temp = solution + [action]
+                que_pos = problem.getCostOfActions(temp) + heuristic(nextState,problem)
+                priority_queue.push((temp,nextState),que_pos)
+        aux = priority_queue.pop()
+        solution = aux[0]
+        current = aux[1]
 
     return solution
     util.raiseNotDefined()
