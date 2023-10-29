@@ -1,63 +1,77 @@
+# search.py
+# ---------
+# Licensing Information:  You are free to use or extend these projects for
+# educational purposes provided that (1) you do not distribute or publish
+# solutions, (2) you retain this notice, and (3) you provide clear
+# attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
+# 
+# Attribution Information: The Pacman AI projects were developed at UC Berkeley.
+# The core projects and autograders were primarily created by John DeNero
+# (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
+# Student side autograding was added by Brad Miller, Nick Hay, and
+# Pieter Abbeel (pabbeel@cs.berkeley.edu).
+
+
 """
-In search.py, you will implement generic search algorithms which are called 
-by Pacman agents (in searchAgents.py).
+In search.py, you will implement generic search algorithms which are called by
+Pacman agents (in searchAgents.py).
 """
 
+import copy
 import util
 
 class SearchProblem:
-  """
-  This class outlines the structure of a search problem, but doesn't implement
-  any of the methods (in object-oriented terminology: an abstract class).
-  
-  You do not need to change anything in this class, ever.
-  """
-  
-  def getStartState(self):
-     """
-     Returns the start state for the search problem 
-     """
-     util.raiseNotDefined()
-    
-  def isGoalState(self, state):
-     """
-       state: Search state
-    
-     Returns True if and only if the state is a valid goal state
-     """
-     util.raiseNotDefined()
+    """
+    This class outlines the structure of a search problem, but doesn't implement
+    any of the methods (in object-oriented terminology: an abstract class).
 
-  def getSuccessors(self, state):
-     """
-       state: Search state
-     
-     For a given state, this should return a list of triples, 
-     (successor, action, stepCost), where 'successor' is a 
-     successor to the current state, 'action' is the action
-     required to get there, and 'stepCost' is the incremental 
-     cost of expanding to that successor
-     """
-     util.raiseNotDefined()
+    You do not need to change anything in this class, ever.
+    """
 
-  def getCostOfActions(self, actions):
-     """
-      actions: A list of actions to take
- 
-     This method returns the total cost of a particular sequence of actions.  The sequence must
-     be composed of legal moves
-     """
-     util.raiseNotDefined()
-           
+    def getStartState(self):
+        """
+        Returns the start state for the search problem.
+        """
+        util.raiseNotDefined()
+
+    def isGoalState(self, state):
+        """
+          state: Search state
+
+        Returns True if and only if the state is a valid goal state.
+        """
+        util.raiseNotDefined()
+
+    def getSuccessors(self, state):
+        """
+          state: Search state
+
+        For a given state, this should return a list of triples, (successor,
+        action, stepCost), where 'successor' is a successor to the current
+        state, 'action' is the action required to get there, and 'stepCost' is
+        the incremental cost of expanding to that successor.
+        """
+        util.raiseNotDefined()
+
+    def getCostOfActions(self, actions):
+        """
+         actions: A list of actions to take
+
+        This method returns the total cost of a particular sequence of actions.
+        The sequence must be composed of legal moves.
+        """
+        util.raiseNotDefined()
+
 
 def tinyMazeSearch(problem):
-  """
-  Returns a sequence of moves that solves tinyMaze.  For any other
-  maze, the sequence of moves will be incorrect, so only use this for tinyMaze
-  """
-  from game import Directions
-  s = Directions.SOUTH
-  w = Directions.WEST
-  return  [s,s,w,s,w,w,s,w]
+    """
+    Returns a sequence of moves that solves tinyMaze.  For any other maze, the
+    sequence of moves will be incorrect, so only use this for tinyMaze.
+    """
+    from game import Directions
+    s = Directions.SOUTH
+    w = Directions.WEST
+    return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
   """
@@ -95,7 +109,7 @@ def depthFirstSearch(problem):
           queue.push(newNode)
   return []
 
-import copy
+
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
@@ -122,67 +136,117 @@ def breadthFirstSearch(problem):
                 open_ds.push(new_node)
 
     return []
-      
+
 def uniformCostSearch(problem):
-  "Search the node of least total cost first. "
-
-def nullHeuristic(state, problem=None):
-  """
-  A heuristic function estimates the cost from the current state to the nearest
-  goal in the provided SearchProblem.  This heuristic is trivial.
-  """
-  return 0
-
-def aStarSearch(problem, heuristic=nullHeuristic):
-   
+    """Search the node of least total cost first."""
     open_ds = util.PriorityQueue()
 
-    start_state = problem.getStartState()
-    start = (start_state, "", (0, heuristic(start_state, problem)))
-    open_ds.push([start], start[2])
-
-    visited_state = {start_state[0]: sum(start[2])}
+    start = [problem.getStartState(),""]
+    open_ds.push([start], 0)
+    visited_state = []
 
     while not open_ds.isEmpty():
         node = open_ds.pop()
-
-        if not open_ds.isEmpty():
-            next_node = open_ds.pop()
-            temp = [node, next_node]
-
-            while not open_ds.isEmpty() and sum(node[-1][2]) == sum(next_node[-1][2]):
-                next_node = open_ds.pop()
-                temp.append(next_node)
-            
-            tie_nodes = temp if sum(node[-1][2]) == sum(next_node[-1][2]) else temp[:-1]
-
-            for n in tie_nodes:
-                if node[-1][2][0] < n[-1][2][0]:
-                    node = n
-
-            for n in temp:
-                if node != n:
-                    open_ds.push(n, sum(n[-1][2]))
-
         end = node[-1]
-        if end[0] not in visited_state or sum(end[2]) <= visited_state[end[0]]:
-            if problem.isGoalState(end[0]):
-                return [state[1] for state in node[1:]]
 
+        if problem.isGoalState(end[0]):
+            return [state[1] for state in node[1:]]
+
+        if end[0] not in visited_state:
+            visited_state.append(end[0])
             successors = problem.getSuccessors(end[0])
             for succ in successors:
-                gn_succ = end[2][0] + succ[2]
-                hn_succ = heuristic(succ[0], problem)
-                fn_succ = gn_succ + hn_succ
-                if succ[0] not in visited_state or fn_succ < visited_state[succ[0]]:
-                    visited_state[succ[0]] = fn_succ
-                    new_node = copy.deepcopy(node)
-                    new_succ = (succ[0], succ[1], (gn_succ, hn_succ))
-                    new_node.append(new_succ)
-                    open_ds.push(new_node, fn_succ)
+                new_node = node + [succ]
+                total_cost = problem.getCostOfActions([state[1] for state in new_node[1:]])
+                open_ds.push(new_node, total_cost)
+
     return []
+
+def nullHeuristic(state, problem=None):
+    """
+    A heuristic function estimates the cost from the current state to the nearest
+    goal in the provided SearchProblem.  This heuristic is trivial.
+    """
+    return 0
+
+def aStarSearch(problem, heuristic=nullHeuristic):
+    "*** YOUR CODE HERE ***"
+    print "Start:", problem.getStartState()
+    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    print "Start's successors:", problem.getSuccessors(problem.getStartState())
+
+    current = problem.getStartState()
+    priority_queue = util.PriorityQueue()
+    visited = []
+    solution = []
+
+    if problem.isGoalState(current):
+        print "Solution: ", solution
+        return solution
+    
+    while not problem.isGoalState(current):
+        if current not in visited:
+            visited.append(current)
+            successors = problem.getSuccessors(current)
+
+            for nextState, action, step_cost in successors:
+                temp = solution + [action]
+                que_pos = problem.getCostOfActions(temp) + heuristic(nextState,problem)
+                priority_queue.push((temp,nextState),que_pos)
+        aux = priority_queue.pop()
+        solution = aux[0]
+        current = aux[1]
+
+    return solution
+    util.raiseNotDefined()
+import random
+
+def RandomSearch(problem):
+    print "Start:", problem.getStartState()
+    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    print "Start's successors:", problem.getSuccessors(problem.getStartState())
+
+    solution =[]
+    current = problem.getStartState()
+
+    while not problem.isGoalState(current):
+        successors = problem.getSuccessors(current)
+        if not successors:
+            return []
+        random_successor = random.choice(successors)
+        next_state, action, _ = random_successor
+        solution.append(action)
+        current = next_state
+    return solution
+
+def greedyBestFirstSearch(problem, heuristic=nullHeuristic):
+    print "Start:", problem.getStartState()
+    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    print "Start's successors:", problem.getSuccessors(problem.getStartState())
+
+    start_state = problem.getStartState()
+    open_list = util.PriorityQueue()
+    start_heuristic = heuristic(start_state, problem)
+    open_list.push((start_state, [], start_heuristic), start_heuristic)
+    visited = set()
+
+    while not open_list.isEmpty():
+        current_state, actions, h_val = open_list.pop()
+        if problem.isGoalState(current_state):
+            return actionss
+        if current_state not in visited:
+            visited.add(current_state)
+            successors = problem.getSuccessors(current_state)
+            for next_state,action,_ in successors:
+                if next_state not in visited:
+                    h_next = heuristic(next_state,problem)
+                    open_list.push((next_state,actions +[action], h_val), h_val)
+    return []
+
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+rnd = RandomSearch
+gbf = greedyBestFirstSearch
