@@ -199,10 +199,54 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
     return solution
     util.raiseNotDefined()
+import random
 
+def RandomSearch(problem):
+    print "Start:", problem.getStartState()
+    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    print "Start's successors:", problem.getSuccessors(problem.getStartState())
+
+    solution =[]
+    current = problem.getStartState()
+
+    while not problem.isGoalState(current):
+        successors = problem.getSuccessors(current)
+        if not successors:
+            return []
+        random_successor = random.choice(successors)
+        next_state, action, _ = random_successor
+        solution.append(action)
+        current = next_state
+    return solution
+
+def greedyBestFirstSearch(problem, heuristic=nullHeuristic):
+    print "Start:", problem.getStartState()
+    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    print "Start's successors:", problem.getSuccessors(problem.getStartState())
+
+    start_state = problem.getStartState()
+    open_list = util.PriorityQueue()
+    start_heuristic = heuristic(start_state, problem)
+    open_list.push((start_state, [], start_heuristic), start_heuristic)
+    visited = set()
+
+    while not open_list.isEmpty():
+        current_state, actions, h_val = open_list.pop()
+        if problem.isGoalState(current_state):
+            return actions
+        if current_state not in visited:
+            visited.add(current_state)
+            successors = problem.getSuccessors(current_state)
+            for next_state,action,_ in successors:
+                if next_state not in visited:
+                    h_next = heuristic(next_state,problem)
+                    open_list.push((next_state,actions +[action], h_val), h_val)
+    return []
 
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+rnd = RandomSearch
+gbf = greedyBestFirstSearch

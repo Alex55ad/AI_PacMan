@@ -406,36 +406,62 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchType = FoodSearchProblem
 
 def foodHeuristic(state, problem):
-    """
-    Your heuristic for the FoodSearchProblem goes here.
+    def find(parent, i):
+        if parent[i] is None:
+            return i
+        return find(parent, parent[i])
 
-    This heuristic must be consistent to ensure correctness.  First, try to come
-    up with an admissible heuristic; almost all admissible heuristics will be
-    consistent as well.
+    def union(parent, rank, x, y):
+        xroot = find(parent, x)
+        yroot = find(parent, y)
 
-    If using A* ever finds a solution that is worse uniform cost search finds,
-    your heuristic is *not* consistent, and probably not admissible!  On the
-    other hand, inadmissible or inconsistent heuristics may find optimal
-    solutions, so be careful.
+        if rank[xroot] < rank[yroot]:
+            parent[xroot] = yroot
+        elif rank[xroot] > rank[yroot]:
+            parent[yroot] = xroot
+        else:
+            parent[yroot] = xroot
+            rank[xroot] += 1
 
-    The state is a tuple ( pacmanPosition, foodGrid ) where foodGrid is a Grid
-    (see game.py) of either True or False. You can call foodGrid.asList() to get
-    a list of food coordinates instead.
-
-    If you want access to info like walls, capsules, etc., you can query the
-    problem.  For example, problem.walls gives you a Grid of where the walls
-    are.
-
-    If you want to *store* information to be reused in other calls to the
-    heuristic, there is a dictionary called problem.heuristicInfo that you can
-    use. For example, if you only want to count the walls once and store that
-    value, try: problem.heuristicInfo['wallCount'] = problem.walls.count()
-    Subsequent calls to this heuristic can access
-    problem.heuristicInfo['wallCount']
-    """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    unvisited_foods = foodGrid.asList()
+
+    if not unvisited_foods:
+        return 0
+
+    graph = []
+    for i in range(len(unvisited_foods)):
+        for j in range(i + 1, len(unvisited_foods)):
+          graphList = [unvisited_foods[i], unvisited_foods[j], util.manhattanDistance(unvisited_foods[i], unvisited_foods[j])]
+        graph.append(graphList)
+
+    mst_length = 0
+    i = 0
+    e = 0
+
+    graph = sorted(graph, key=lambda x: x[2])
+
+    parent = {}
+    rank = {}
+
+    for food in unvisited_foods:
+        parent[food] = None
+        rank[food] = 0
+
+    while e < len(unvisited_foods) - 1:
+        u, v, w = graph[i]
+        i += 1
+        x = find(parent, u)
+        y = find(parent, v)
+
+        if x != y:
+            e += 1
+            mst_length += w
+            union(parent, rank, x, y)
+
+    closest_food = min([util.manhattanDistance(position, food) for food in unvisited_foods])
+
+    return closest_food + mst_length
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
