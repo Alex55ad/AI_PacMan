@@ -17,6 +17,7 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
+import copy
 import util
 
 class SearchProblem:
@@ -73,105 +74,93 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
-    """
-    Search the deepest nodes in the search tree first.
+  """
+  Search the deepest nodes in the search tree first [p 85].
+  
+  Your search algorithm needs to return a list of actions that reaches
+  the goal.  Make sure to implement a graph search algorithm [Fig. 3.7].
+  
+  To get started, you might want to try some of these simple commands to
+  understand the search problem that is being passed in:
+  """
+  
+  print("Start:", problem.getStartState())
+  print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+  print("Start's successors:", problem.getSuccessors(problem.getStartState()))  
+  
+  queue = util.Stack()
+  visitedNodes = []
+  start = problem.getStartState()
+  firstNode = (start,[])
 
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
+  queue.push(firstNode)
 
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-"""
-    solution = []
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    startingPos = problem.getStartState()
-    if(problem.isGoalState(startingPos)):
-        print "Solution: ", solution
-        return solution
-    stack = util.Stack()
-    visited = []
-    stack.push((startingPos, []))
-    while not stack.isEmpty():
-        currentx, actions = stack.pop()
-        solution = actions
-        if isinstance(currentx[0], int):
-            current = currentx
-        if (not (current in visited)):
-            visited.append(current)
-            if(problem.isGoalState(currentx)):
-                print "Solution: ", solution
-                return solution
-            successors = problem.getSuccessors(currentx)
-            for nextState, action, _ in successors:
-                stack.push((nextState, actions + [action]))
-    print "Solution: ", solution
-    return solution       
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+  while not queue.isEmpty():
+    state,actions = queue.pop()
+    if state not in visitedNodes:
+      visitedNodes.append(state)
+      if problem.isGoalState(state):
+        return actions
+      else:
+        successors = problem.getSuccessors(state)
+        for state,action,cost in successors:
+          newAction = actions + [action]
+          newNode = (state,newAction)
+          queue.push(newNode)
+  return []
+
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    solution = []
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    startingPos = problem.getStartState()
-    if problem.isGoalState(startingPos):
-        print "Solution: ", solution
-        return solution
-    queue = util.Queue() 
-    visited = set()
-    queue.push((startingPos, []))
-    while not queue.isEmpty():
-        currentx, actions = queue.pop()
-        solution = actions
-        if isinstance(currentx[0], int):
-            current = currentx
-        else: current = currentx[0]
-        if current not in visited:
-            visited.add(current)
-            if problem.isGoalState(currentx):
-                print "Solution: ", solution
-                return solution
-            successors = problem.getSuccessors(currentx)
+    open_ds = util.Queue()
 
-            for nextState, action, _ in successors:
-                queue.push((nextState, actions + [action])) 
-    print "Solution: ", solution
-    return solution
-    util.raiseNotDefined()
+    start = [problem.getStartState(), ""]
+    open_ds.push([start])
+
+    visited_state = [start[0]]
+
+    while not open_ds.isEmpty():
+        node = open_ds.pop()
+        end = node[-1]
+
+        if problem.isGoalState(end[0]):
+            return [state[1] for state in node[1:]]
+
+        successors = problem.getSuccessors(end[0])
+        for succ in successors:
+            if succ[0] not in visited_state:
+                visited_state.append(succ[0])
+                new_node = copy.deepcopy(node)
+                new_node.append(succ)
+                open_ds.push(new_node)
+
+    return []
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    startingPos = problem.getStartState()
-    solution = []
-    if problem.isGoalState(startingPos):
-        print "Solution: ", solution
-        return solution
-    queue = util.PriorityQueue()
-    visited = set()
-    queue.push((startingPos, [], 0), 0) 
-    while not queue.isEmpty():
-        current,actions, cost = queue.pop
-        if current not in visited:
-            visited.add(current)
-        if problem.isGoalState(current):
-            print "solution: ", solution
-            return solution
-        successors = problem.getSuccessors(current)
-        for nextState, action, step_cost in successors:
-            step_cost = cost + step_cost
-            queue.push((nextState, actions + [action], step_cost), step_cost)
-    print "Solution: ", solution
-    return solution
-    util.raiseNotDefined()
+    open_ds = util.PriorityQueue()
+
+    start = [problem.getStartState(),""]
+    open_ds.push([start], 0)
+    visited_state = []
+
+    while not open_ds.isEmpty():
+        node = open_ds.pop()
+        end = node[-1]
+
+        if problem.isGoalState(end[0]):
+            return [state[1] for state in node[1:]]
+
+        if end[0] not in visited_state:
+            visited_state.append(end[0])
+            successors = problem.getSuccessors(end[0])
+            for succ in successors:
+                new_node = node + [succ]
+                total_cost = problem.getCostOfActions([state[1] for state in new_node[1:]])
+                open_ds.push(new_node, total_cost)
+
+    return []
 
 def nullHeuristic(state, problem=None):
     """
