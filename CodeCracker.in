@@ -1,0 +1,20 @@
+set(arithmetic).
+assign(domain_size,10).  
+assign(max_models,2).
+  
+formulas(CodeCracker).
+%X = 1.
+%Y = 6.
+%Z = 4.
+one_value_correctly_placed(x, y, z) -> (x = X & y != Y & z != Z) | (x != X & y = Y & z != Z) | (x != X & y != Y & z != z).
+nothing_correct(x,y,z) -> (x != X & y != Y & z != Z) | (x != X & y != Z & z != Y) | (x != Y & y != Y & z != X) | (x != Y & y != X & z != Z).
+one_value_correct_wrongly_placed(x,y,z) -> (x = Y & y != Y & z != Z) | (x = Z & y != Y & z != Z) | (x != X & y = X & z != Z) | (x != X & y = Z & z != Z) | (x != X & y != Y & z = X) | (x != X & y != Y & z = Y).
+two_values_correct_wrongly_placed(x,y,z) -> (x = Z & y != Y & z = X) | (x = Y & y != Y & z = X) | (x = Z & y != Y & z = Y) | (x != X & y = Z & z = Y) | (x != X & y = X & z = Y) | (x != X & y = Z & z = X).
+end_of_list.
+
+formulas(puzzle1).
+one_value_correctly_placed(1,7,5).
+nothing_correct(9,7,2).
+one_value_correct_wrongly_placed(9,4,3).
+two_values_correct_wrongly_placed(7,4,6).
+end_of_list.
