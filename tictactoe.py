@@ -22,13 +22,14 @@ class TicTacToe:
         if self.board[index] == " ":
             self.board[index] = self.current_player
             self.buttons[index].config(text=self.current_player)
-            if self.check_winner_with_mace4():
+            if self.check_winner():
                 messagebox.showinfo("Tic Tac Toe", f"Player {self.current_player} wins!")
                 self.reset_game()
             elif " " not in self.board:
                 messagebox.showinfo("Tic Tac Toe", "It's a tie!")
                 self.reset_game()
             else:
+                self.check_winner_with_mace4()
                 self.current_player = "O" if self.current_player == "X" else "X"
 
     def check_winner(self):
@@ -45,24 +46,27 @@ class TicTacToe:
         return False
 
     def check_winner_with_mace4(self):
-        mace_input = """
-            op col.
-            op empty.
-            op cell.
-            op row.
+    # Transform the board to match the format in formulas(sample_puzzle)
+        formatted_board = "\n".join([
+            f"f({i//3},{i%3}) = {0 if val==' ' else 1 if val=='X' else 2}." for i, val in enumerate(self.board)
+        ])
 
-            eq X = col(X).
-            eq O = col(O).
-            eq E = empty(E).
+        mace_input = f"""
+            assign(domain_size, 3).
+            assign(max_seconds, 2).
 
-            board(
-                cell({}, {}, {}),
-                cell({}, {}, {}),
-                cell({}, {}, {})
-            ).
-
-            include win.
-        """.format(*self.board)
+            formulas(tic_tac_toe).
+                all x all y exists p P(x, y, p).
+                all x all y all p1 all p2 ((P(x, y, p1) & P(x, y, p2)) -> (p1 = p2)).
+                all y all x1 all x2 all p ((P(x1, y, p) & P(x2, y, p)) -> (x1 = x2)).
+                all x all y1 all y2 all p ((P(x, y1, p) & P(x, y2, p)) -> (y1 = y2)).
+                (P(0, 0, p) & P(1, 1, p) & P(2, 2, p)) -> (p = 0 | p = 1 | p = 2).
+                (P(0, 2, p) & P(1, 1, p) & P(2, 0, p)) -> (p = 0 | p = 1 | p = 2).  
+            end_of_list.
+            formulas(sample_puzzle).
+                {formatted_board}
+            end_of_list.
+        """
 
         with open("tic_tac_toe.mace", "w") as f:
             f.write(mace_input)
@@ -73,6 +77,7 @@ class TicTacToe:
             print("Solutions still remain!")
         except subprocess.CalledProcessError as e:
             print("No solutions left!", e)
+
 
 
     def reset_game(self):
